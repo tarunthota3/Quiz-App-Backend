@@ -3,8 +3,8 @@ const express = require('express')
     , app = express('app');
 
 /* importing routes */
-const santas = require('./routes/santas.route.js')
-    , questionBank = require('./routes/questionBank.route.js');
+const questionBank = require('./routes/questionBank.route.js')
+    , user = require('./routes/user.route.js');
 
 /* cors */
 app.use((req, res, next) => {
@@ -26,7 +26,7 @@ app.use(express.urlencoded({
 
 /* routes */
 // app.use('/', indexRoute);
-app.use('/santas', santas);
 app.use('/qb', questionBank);
+app.use('/ur', user);
 
 module.exports = app;

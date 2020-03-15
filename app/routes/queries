@@ -1,0 +1,1 @@
+db.users.insert({"firstName":"admin","lastName":"admin","usertype":"admin","email":"admin@gmail.com","password":"admin@123"});
