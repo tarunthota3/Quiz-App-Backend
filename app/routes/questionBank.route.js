@@ -6,7 +6,7 @@ const qb = require('express').Router()
     , csv = require('csvtojson')
     , url = 'mongodb://localhost:27017'
     , dbName = 'christmasGame'
-    , collectionName = 'questionBank';
+    , collectionName = 'category';
 
 var fileName = '';
 var Storage = multer.diskStorage({
@@ -46,14 +46,67 @@ function mongoClient() {
 
 const dbCalls = {
   /* inserting santa to the santas collection */
-  getQuest: function(db) {
+  getQuest: function(db, categoryName) {
+    console.log("category name: ",categoryName);
+    
     return new Promise((resolve, reject) => {
       const collection = db.collection(collectionName);
-      collection.find({}).toArray(function(err, docs) {
+      collection.find({name:categoryName}).toArray(function(err, docs) {
         if (err) {
           reject('error in fetching quest - > '+ err);
         } else {
-          resolve(JSON.stringify(docs));
+          
+          let questionId = docs[0].questionId;
+          let data = docs[0].data;
+          console.log("question size: ", data.length);
+          
+          // resolve(JSON.stringify(data.slice(0,4)));
+          let noOfQuestions = 5;
+          let temp = questionId + 4;
+          let updatedQuestionId = 0;
+          let arr = [];
+          if(temp == data.length - 1){
+            arr = data.slice(questionId, temp + 1);
+            updatedQuestionId = 0;
+          }
+          else if(temp < data.length - 1){
+            arr = data.slice(questionId, temp + 1)
+            updatedQuestionId = temp + 1;
+          }
+          else if(temp > data.length - 1){
+            
+            let lastNumberOfElements = data.length - questionId;
+            console.log("lastNumberofElements: ", lastNumberOfElements);
+            
+            let firstNumberOfElements = noOfQuestions - lastNumberOfElements;
+            console.log("firstNumberOfElements: ", firstNumberOfElements);
+            
+            let lastElements = data.slice(questionId, (questionId + lastNumberOfElements));
+            
+            // console.log("lastElements: ", lastElements);
+            
+            let firstElements = data.slice(0, firstNumberOfElements);
+
+            // console.log("firstElements: ", firstElements);
+            
+            arr = lastElements.concat(firstElements);
+            updatedQuestionId = firstNumberOfElements;
+          }
+          
+          collection.updateOne(
+              { name : categoryName },
+              { $set: { questionId : updatedQuestionId } }, function(err, result) {
+                if(err){
+                  reject('error in fetching quest - > '+ err);
+                }
+                else{
+                  console.log("array: ", arr);
+                  console.log("questionid which needs to be updated: ", updatedQuestionId); 
+                  resolve(JSON.stringify(arr));
+                }
+          });
+
+          
         }
       });
     });
@@ -228,42 +281,19 @@ qb.delete('/questions', async function(req, res) {
 
 
 qb.get('/quest',async function(req, res) {
-	let q=[];
-  console.log("questions length: ",questions.length);
-  if(questions.length < 5){
-    console.log("length is less than 5");
+  let categoryName = req.query.categoryName;
     var client = await mongoClient().catch(err => console.error(err));
     var db = client.db(dbName);
 
-    dbCalls.getQuest(db)
+    dbCalls.getQuest(db, categoryName)
       .then((t) => {
-        // console.log("data received: ",JSON.parse(t));
-        // questions.push(JSON.parse(t));
-        questions = questions.concat(JSON.parse(t));
-        console.log("adding the question set from db");
-        console.log("new questions set length: ",questions.length);
-        q = questions.slice(0, 5);
-        questions.splice(0, 5);
-        console.log("spliced array length: ",questions.length);
-        console.log("question set: ",q);
-        res.json(q);
+        console.log("data received: ",JSON.parse(t));
+        res.json(JSON.parse(t));
 
       })
       .catch((err) => {
         console.error(err);
       });
-  }
-  else{
-    console.log("length is greater than 5");
-    q = questions.slice(0, 5);
-    questions.splice(0, 5);
-    console.log("spliced array length: ",questions.length);
-    console.log("question set: ",q);
-    res.json(q);
-  }
-  // q = questions.slice(0,5);
-
-
 });
 
   qb.get('/particularQuest',async function(req, res) {
