@@ -111,6 +111,21 @@ const dbCalls = {
       });
     });
   },
+  getAllQuest: function(db) {
+    return new Promise((resolve, reject) => {
+      console.log("inside promise of delete function");
+      const collection = db.collection(collectionName);
+      collection.find().toArray(function(err, docs) {
+        // console.log("inside delete one callback");
+        if (err) {
+          reject('error in fetching quest - > '+ err);
+        } else {
+          console.log("docs:::::: ",docs);
+          resolve(JSON.stringify(docs));
+        }
+      })
+    });
+  },
   deleteQuest: function(db,_id) {
     console.log("inside delete question function: ",_id);
     return new Promise((resolve, reject) => {
@@ -165,13 +180,30 @@ const dbCalls = {
     console.log("inside post question");
     return new Promise((resolve, reject) => {
       const collection = db.collection(collectionName);
-      collection.insertOne(data,function(err, docs) {
-        // console.log("response of fetching particular question: ",docs);
-        if (err) {
-          reject('error in posting quest - > '+ err);
-        } else {
-          resolve(JSON.stringify(docs));
-        }
+      let questionData = {
+        question : data.question,
+        image_url : data.image_url,
+        audio_url : data.audio_url,
+        op1 : data.op1,
+        op2 : data.op2,
+        op3 : data.op3,
+        op4 : data.op4,
+        ans : data.ans
+      };
+      collection.updateOne(
+        {
+            name: data.category
+        },
+        {
+            $push: {
+                data: questionData
+            }
+        }, function(err, docs) {
+          if (err) {
+            reject('error in fetching quest - > '+ err);
+          } else {
+            resolve(JSON.stringify(docs));
+          }
       });
     });
   },
@@ -237,7 +269,7 @@ qb.get('/allQuestions', async function(req, res) {
   var client = await mongoClient().catch(err => console.error(err));
   var db = client.db(dbName);
 
-  dbCalls.getQuest(db)
+  dbCalls.getAllQuest(db)
     .then((t) => {
       res.json(t);
     })

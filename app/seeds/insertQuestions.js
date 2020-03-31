@@ -15,7 +15,7 @@ MongoClient.connect(url, function(err, db) {
             },
             {
                 $push: {
-                    data: {$each: questionData.slice(0,1)
+                    data: {$each: questionData.slice(0,13)
                 }
             }
         }, function(err, res) {
