@@ -207,26 +207,40 @@ const dbCalls = {
       });
     });
   },
-  postBulkQuestion:function(db,data){
-    console.log("inside post bulk questions: ",data);
+  postBulkQuestion:function(db,data, category){
+    console.log("inside post bulk questions: ",data, category);
     return new Promise((resolve, reject) => {
       const collection = db.collection(collectionName);
-      collection.insertMany(data,function(err,docs){
-        if(err) {
-          reject('error in posting quest - > '+ err);
-        }
-        else{
-          resolve(JSON.stringify(docs));
-        }
-      })
+      collection.updateOne(
+        {
+            name: category
+        },
+        {
+            $push: {
+                data: {
+                  $each: data
+                }
+            }
+        }, function(err, docs) {
+          if(err){
+            console.log("err: ", err);
+            
+            reject('error in updating quest - > '+ err);
+          }
+          else{
+              console.log("before resolve: ", docs);
+              
+              resolve(JSON.stringify(docs));
+          }
+      });
     });
   },
   updateQuestion:function(db,data){
     console.log("inside update question");
     return new Promise((resolve, reject) => {
       const collection = db.collection(collectionName);
-      let id = "5c19dca26dc5a11bd19dd6d1";
-      var questionId = new mongo.ObjectID(data.id);
+      let category = data.category;
+      let key = data.key;
       let requestData = {
         question: data.question,
         op1: data.op1,
@@ -346,7 +360,6 @@ qb.get('/quest',async function(req, res) {
 
   qb.post('/question',async function(req, res) {
     var client = await mongoClient().catch(err => console.error(err));
-    console.log("req.body: ",req.body);
     let data = req.body;
     var db = client.db(dbName);
     dbCalls.postQuestion(db,data)
@@ -360,7 +373,8 @@ qb.get('/quest',async function(req, res) {
       });
   });
   qb.post('/question/bulkUpload', upload.array('csvFile',1), async function(req, res) {
-  // qb.post('/question/bulkUpload', async function(req, res) {
+    let category = req.body.categoryData;
+    
     var client = await mongoClient().catch(err => console.error(err));
     var db = client.db(dbName);
     console.log("__dirname ",__dirname+'\\uploads\\');
@@ -368,7 +382,7 @@ qb.get('/quest',async function(req, res) {
     csv()
     .fromFile(filePath)
     .then((jsonObj)=>{
-      dbCalls.postBulkQuestion(db,jsonObj)
+      dbCalls.postBulkQuestion(db,jsonObj, category)
         .then((t) => {
           res.json("Questions insered successfully");
         })
