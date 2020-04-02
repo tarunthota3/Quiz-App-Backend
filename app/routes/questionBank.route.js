@@ -120,28 +120,32 @@ const dbCalls = {
         if (err) {
           reject('error in fetching quest - > '+ err);
         } else {
-          console.log("docs:::::: ",docs);
+          // console.log("docs:::::: ",docs);
           resolve(JSON.stringify(docs));
         }
       })
     });
   },
-  deleteQuest: function(db,_id) {
-    console.log("inside delete question function: ",_id);
+  deleteQuest: function(db,category, key) {
     return new Promise((resolve, reject) => {
-      console.log("inside promise of delete function");
+      // console.log("inside promise of delete function");
       const collection = db.collection(collectionName);
-      var questionId = new mongo.ObjectID(_id);
-      collection.deleteOne({_id:questionId}, function(err, docs) {
-        // console.log("inside delete one callback");
-        if (err) {
-          reject('error in fetching quest - > '+ err);
-        } else {
-          console.log("docs:::::: ",docs);
-          resolve(JSON.stringify(docs));
-        }
-      })
-    });
+      collection.find({name:category}).toArray(function(err, docs) {
+        // console.log("docs: ", docs);
+        let questions = docs[0].data;
+        questions.splice(key, 1);
+        collection.updateOne(
+          { name : category },
+          { $set: { data: questions } }, function(err, docs) {
+            if(err){
+              reject('error in fetching quest - > '+ err);
+            }
+            else{
+              resolve(JSON.stringify(docs));
+            }
+      });
+      });
+    });   
   },
   deleteMultipleQuest: function(db,ids) {
     return new Promise((resolve, reject) => {
@@ -249,9 +253,18 @@ const dbCalls = {
         op4: data.op4,
         ans: data.ans
       }
+
+      // db.category.update( {name:"entertainment"}, {$set:{"data.0.question":"TEST?"}});
       collection.updateOne(
-        { _id : questionId },
-        { $set: requestData }, function(err, docs) {
+        { name : category },
+        { $set: {
+          [`data.${key}.question`]: requestData.question,
+          [`data.${key}.op1`]:requestData.op1,
+          [`data.${key}.op2`]:requestData.op2,
+          [`data.${key}.op3`]:requestData.op3,
+          [`data.${key}.op4`]:requestData.op4,
+          [`data.${key}.ans`]:requestData.ans,
+        } }, function(err, docs) {
               if(err){
                 reject('error in updating quest - > '+ err);
               }
@@ -297,10 +310,11 @@ qb.delete('/question', async function(req, res) {
   console.log("delete question route hit: ",req.query);
   var client = await mongoClient().catch(err => console.error(err));
   var db = client.db(dbName);
-  var id = req.query.id
-  dbCalls.deleteQuest(db, id)
+  var category = req.query.category;
+  var key = req.query.key;
+  dbCalls.deleteQuest(db, category, key)
     .then((t) => {
-      console.log("response: ",t);
+      // console.log("response: ",t);
       res.send("Question Successfully deleted");
     })
     .catch((err) => {
