@@ -5,7 +5,7 @@ const qb = require('express').Router()
     , multer = require('multer')
     , csv = require('csvtojson')
     , url = 'mongodb://localhost:27017'
-    , dbName = 'christmasGame'
+    , dbName = 'quiz'
     , collectionName = 'category';
 
 var fileName = '';

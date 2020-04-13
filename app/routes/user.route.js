@@ -1,8 +1,8 @@
 const ur = require('express').Router()
     , MongoClient = require('mongodb').MongoClient
     , url = 'mongodb://localhost:27017'
-    , dbName = 'christmasGame'
-    , collectionName = 'users';  
+    , dbName = 'quiz'
+    , collectionName = 'users';
 
 function mongoClient() {
     /*
