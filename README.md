@@ -1,6 +1,6 @@
 # Quiz App Backend
 
-A backend application of the Quiz Platform  [Quiz Platform Application]( https://github.com/tarunthota3/Quiz-App-Frontend )
+A backend application of the [Quiz Platform Application]( https://github.com/tarunthota3/Quiz-App-Frontend )
 
 ## Usage
 
