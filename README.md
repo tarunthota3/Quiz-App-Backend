@@ -2,6 +2,11 @@
 
 A backend application of the [Quiz Platform Application]( https://github.com/tarunthota3/Quiz-App-Frontend )
 
+## Built with
+ - Node
+ - Express
+ - MongoDB
+
 ## Usage
 
 ```
